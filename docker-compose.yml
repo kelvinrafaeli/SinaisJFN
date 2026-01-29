@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  sinaisjfn:
+    build: .
+    container_name: sinaisjfn-app
+    ports:
+      - "8000:8000"
+    environment:
+      - TZ=America/Sao_Paulo
+    restart: unless-stopped
+    volumes:
+      # Monta pasta de logs (opcional)
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/status')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - sinaisjfn-network
+
+  # Nginx como proxy reverso (opcional, mas recomendado para produção)
+  nginx:
+    image: nginx:alpine
+    container_name: sinaisjfn-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro  # Para certificados SSL (se tiver)
+    depends_on:
+      - sinaisjfn
+    restart: unless-stopped
+    networks:
+      - sinaisjfn-network
+
+networks:
+  sinaisjfn-network:
+    driver: bridge
