@@ -1,28 +1,31 @@
-# Use Python 3.13 slim image
-FROM python:3.13-slim
+# Use Python 3.11 slim (mais estável para wheels pré-compilados)
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     make \
-    libffi-dev \
-    libssl-dev \
-    python3-dev \
-    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+RUN pip install --upgrade pip setuptools wheel
 
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies (wheels pré-compilados)
+RUN pip install --only-binary=:all: numpy pandas || pip install numpy pandas
+RUN pip install -r requirements.txt
 
 # Copy application files
 COPY . .
