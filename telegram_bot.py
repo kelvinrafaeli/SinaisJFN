@@ -86,6 +86,10 @@ class TelegramBot:
             formatted_message += f"{emoji} **{signal_type}** - **{symbol}**\n"
             formatted_message += f"{'═' * 30}\n\n"
             
+            # Adiciona timeframe se disponível
+            timeframe = data.get('timeframe', '15m')  # padrão 15m
+            formatted_message += f"⏱️ **Timeframe:** `{timeframe}`\n\n"
+            
             # Adiciona preço de entrada
             if 'entry_price' in data:
                 formatted_message += f"💰 **Preço de Entrada**\n"
@@ -101,17 +105,35 @@ class TelegramBot:
                 formatted_message += f"🎯 **Take Profit**\n"
                 formatted_message += f"   `${data['take_profit']:.4f}` (+3%)\n\n"
             
-            # Adiciona razão do sinal (última parte da mensagem)
-            if len(parts) > 3:
-                reason = parts[-1].strip()
-                formatted_message += f"📊 **Análise**\n"
-                formatted_message += f"   {reason}\n\n"
+            # Adiciona razão do sinal (última parte da mensagem que NÃO contém Assertividade)
+            reason_parts = [p for p in parts if 'Assertividade' not in p and 'COMPRA' not in p and 'VENDA' not in p]
+            if reason_parts:
+                reason = reason_parts[-1].strip()
+                if reason:
+                    formatted_message += f"📊 **Análise**\n"
+                    formatted_message += f"   {reason}\n\n"
             
-            # Adiciona estatísticas se houver
+            # Adiciona estatísticas de assertividade se houver
             if 'Assertividade' in message:
-                stats_part = [p for p in parts if 'Assertividade' in p]
-                if stats_part:
-                    formatted_message += f"{stats_part[0].strip()}\n\n"
+                import re
+                # Extrai assertividade: "75.0% (3W/1L)"
+                assertividade_match = re.search(r'Assertividade:\s*([\d.]+)%\s*\((\d+)W/(\d+)L\)', message)
+                if assertividade_match:
+                    win_rate = float(assertividade_match.group(1))
+                    wins = assertividade_match.group(2)
+                    losses = assertividade_match.group(3)
+                    
+                    # Emoji baseado na assertividade
+                    if win_rate >= 70:
+                        perf_emoji = "🔥"
+                    elif win_rate >= 50:
+                        perf_emoji = "✅"
+                    else:
+                        perf_emoji = "⚠️"
+                    
+                    formatted_message += f"{perf_emoji} **Assertividade do Par**\n"
+                    formatted_message += f"   Taxa de Acerto: `{win_rate:.1f}%`\n"
+                    formatted_message += f"   Histórico: `{wins}W / {losses}L`\n\n"
             
             formatted_message += f"{'─' * 30}\n"
             formatted_message += f"🕐 {datetime.fromisoformat(timestamp).strftime('%d/%m/%Y %H:%M:%S')}"

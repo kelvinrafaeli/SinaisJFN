@@ -136,7 +136,7 @@ async def analyze_symbol(symbol: str, timeframe: str = '15m') -> Dict:
             candle_timestamp = int(ts.timestamp() * 1000) if hasattr(ts, 'timestamp') else int(ts)
         else:
             candle_timestamp = None
-        strategy_result = strategy.process_signal(symbol, signal, current_price, candle_timestamp)
+        strategy_result = strategy.process_signal(symbol, signal, current_price, candle_timestamp, timeframe)
         
         # Envia alerta pelo Telegram se houver uma ação
         if strategy_result['action'] != 'NONE' and strategy_result.get('alert'):

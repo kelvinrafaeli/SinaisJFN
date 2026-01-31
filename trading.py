@@ -338,7 +338,7 @@ class TradingStrategy:
         self.position_manager = position_manager
         self.alert_monitor = alert_monitor
     
-    def process_signal(self, symbol: str, signal: Dict, current_price: float, candle_timestamp: int = None) -> Dict:
+    def process_signal(self, symbol: str, signal: Dict, current_price: float, candle_timestamp: int = None, timeframe: str = '15m') -> Dict:
         """
         Processa um sinal e decide se abre/fecha posições
         
@@ -347,6 +347,7 @@ class TradingStrategy:
             signal: Sinal do indicador
             current_price: Preço atual
             candle_timestamp: Timestamp da vela atual (em milissegundos)
+            timeframe: Timeframe da análise (ex: 15m, 1h, 4h, 1d)
             
         Returns:
             Dict com ação tomada
@@ -404,6 +405,9 @@ class TradingStrategy:
                         message=signal['message']
                     )
                     
+                    # Adiciona timeframe aos dados
+                    position['timeframe'] = timeframe
+                    
                     result['action'] = 'ENTRY_LONG'
                     result['position'] = position
                     
@@ -436,6 +440,9 @@ class TradingStrategy:
                         signal_strength=strength,
                         message=signal['message']
                     )
+                    
+                    # Adiciona timeframe aos dados
+                    position['timeframe'] = timeframe
                     
                     result['action'] = 'ENTRY_SHORT'
                     result['position'] = position
