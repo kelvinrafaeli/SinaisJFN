@@ -11,6 +11,7 @@ Sistema completo de análise técnica e alertas para criptomoedas baseado no ind
 - ✅ **API REST** completa para integração
 - ✅ **Alertas em tempo real** de sinais de compra/venda
 - ✅ **Gerenciamento de posições** com tracking de PnL
+- ✅ **Notificações via Telegram** automáticas
 
 ## 📦 Instalação
 
@@ -24,13 +25,36 @@ Certifique-se de ter Python 3.9 ou superior instalado.
 pip install -r requirements.txt
 ```
 
-### 3. Configurar ambiente (opcional)
+### 3. Configurar Telegram
 
-Copie o arquivo `.env.example` para `.env` e ajuste as configurações:
+Copie o arquivo `.env.example` para `.env` e configure suas credenciais do Telegram:
 
 ```powershell
 copy .env.example .env
 ```
+
+Edite o arquivo `.env` e adicione:
+```env
+TELEGRAM_TOKEN=seu_token_aqui
+TELEGRAM_CHAT_ID=seu_chat_id_aqui
+```
+
+## 🤖 Configuração do Bot Telegram
+
+### 1. Criar um Bot
+
+1. Abra o Telegram e procure por [@BotFather](https://t.me/botfather)
+2. Envie `/newbot` e siga as instruções
+3. Copie o **token** fornecido
+
+### 2. Adicionar o Bot ao Grupo
+
+1. Crie um grupo no Telegram ou use um existente
+2. Adicione seu bot ao grupo
+3. Para obter o Chat ID:
+   - Adicione [@RawDataBot](https://t.me/rawdatabot) ao grupo
+   - O bot enviará uma mensagem com o `chat.id` do grupo
+   - Use esse ID no arquivo `.env`
 
 ## 🎯 Como Usar
 
@@ -45,6 +69,16 @@ O servidor estará disponível em: **http://localhost:8000**
 ### Acessar a interface web
 
 Abra o navegador e acesse: **http://localhost:8000**
+
+### Testar Telegram
+
+Você pode testar se o Telegram está funcionando:
+
+1. Via API: `POST http://localhost:8000/api/telegram/test`
+2. Via interface web (se implementado)
+3. O bot enviará automaticamente alertas quando detectar **sinais de compra/venda com força ≥ 3**
+
+> 💡 **Nota**: Apenas sinais confirmados (força ≥ 3) são enviados via Telegram. Fechamentos de posição não geram notificações.
 
 ## 📊 Funcionalidades da Interface
 
@@ -72,6 +106,7 @@ Abra o navegador e acesse: **http://localhost:8000**
 - Receba alertas de sinais importantes
 - Veja histórico de alertas
 - Alertas de cruzamento dos níveis 20/-20
+- **Notificações automáticas via Telegram**
 
 ### 6. **Histórico**
 - Visualize todas as posições fechadas

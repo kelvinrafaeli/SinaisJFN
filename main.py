@@ -16,6 +16,7 @@ from dotenv import load_dotenv
 
 from indicator import GCMIndicator
 from trading import PositionManager, AlertMonitor, TradingStrategy
+from telegram_bot import TelegramBot
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -40,6 +41,18 @@ position_manager = PositionManager(
 )
 alert_monitor = AlertMonitor()
 strategy = TradingStrategy(position_manager, alert_monitor)
+
+# Inicializa bot do Telegram
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN", "8463181734:AAEh1G4kXq-36uva-suuzv0u1liBumn-bts")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "-1003850170115")
+telegram_bot = TelegramBot(TELEGRAM_TOKEN, TELEGRAM_CHAT_ID)
+
+# Testa conexão com Telegram
+print("Testando conexão com Telegram...")
+if telegram_bot.test_connection():
+    print("✅ Bot do Telegram conectado com sucesso!")
+else:
+    print("⚠️ Erro ao conectar com o Telegram")
 
 # Exchange (modo demo - sem API keys)
 exchange = ccxt.binance({
@@ -124,6 +137,13 @@ async def analyze_symbol(symbol: str, timeframe: str = '15m') -> Dict:
         else:
             candle_timestamp = None
         strategy_result = strategy.process_signal(symbol, signal, current_price, candle_timestamp)
+        
+        # Envia alerta pelo Telegram se houver uma ação
+        if strategy_result['action'] != 'NONE' and strategy_result.get('alert'):
+            try:
+                telegram_bot.send_alert(strategy_result['alert'])
+            except Exception as e:
+                print(f"Erro ao enviar alerta para Telegram: {str(e)}")
         
         return {
             'symbol': symbol,
@@ -325,7 +345,7 @@ async def close_position_manual(symbol: str):
     # Fecha posição
     closed_position = position_manager.close_position(symbol, current_price, 'MANUAL')
     
-    # Adiciona alerta
+    # Adiciona alerta (sem notificação Telegram)
     alert_monitor.add_alert(
         symbol=symbol,
         signal_type='INFO',
@@ -389,6 +409,43 @@ async def reset_statistics(symbol: str = None):
     return {
         'message': f'Estatísticas {"do símbolo " + symbol if symbol else "de todos os símbolos"} resetadas'
     }
+
+
+@app.post("/api/telegram/test")
+async def test_telegram():
+    """Testa envio de mensagem pelo Telegram"""
+    try:
+        message = f"🤖 **Teste de Conexão**\n\nSistema de Sinais GCM HRT conectado com sucesso!\n\n🕐 {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+        success = telegram_bot.send_message(message)
+        
+        if success:
+            return {
+                'success': True,
+                'message': 'Mensagem de teste enviada com sucesso!'
+            }
+        else:
+            return {
+                'success': False,
+                'message': 'Erro ao enviar mensagem de teste'
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/telegram/status")
+async def get_telegram_status():
+    """Verifica status da conexão com Telegram"""
+    try:
+        connected = telegram_bot.test_connection()
+        return {
+            'connected': connected,
+            'chat_id': TELEGRAM_CHAT_ID
+        }
+    except Exception as e:
+        return {
+            'connected': False,
+            'error': str(e)
+        }
 
 
 # Monta pasta estática
