@@ -33,6 +33,8 @@ $files = @(
     "main.py",
     "indicator.py",
     "trading.py",
+    "telegram_bot.py",
+    ".env",
     "requirements.txt",
     "Dockerfile",
     "docker-compose.yml",
@@ -41,6 +43,10 @@ $files = @(
     "deploy.sh",
     "static"
 )
+
+Write-Host "`n⚠️  IMPORTANTE: Certifique-se de que o arquivo .env está configurado corretamente!" -ForegroundColor Yellow
+Write-Host "Pressione ENTER para continuar ou CTRL+C para cancelar..." -ForegroundColor Cyan
+Read-Host
 
 # Enviar arquivos
 foreach ($file in $files) {

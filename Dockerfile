@@ -23,9 +23,10 @@ RUN pip install --upgrade pip setuptools wheel
 # Copy requirements first for better caching
 COPY requirements.txt .
 
-# Install Python dependencies (wheels pré-compilados)
-RUN pip install --only-binary=:all: numpy pandas || pip install numpy pandas
-RUN pip install -r requirements.txt
+# Install Python dependencies
+RUN pip install numpy pandas
+RUN pip install aiohttp --upgrade
+RUN pip install -r requirements.txt || true
 
 # Copy application files
 COPY . .

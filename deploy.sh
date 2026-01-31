@@ -32,6 +32,23 @@ fi
 
 echo -e "${GREEN}✅ Docker e Docker Compose encontrados${NC}"
 
+# Verifica se o arquivo .env existe
+if [ ! -f .env ]; then
+    echo -e "${YELLOW}⚠️  Arquivo .env não encontrado!${NC}"
+    if [ -f .env.example ]; then
+        echo -e "${YELLOW}📋 Copiando .env.example para .env...${NC}"
+        cp .env.example .env
+        echo -e "${RED}⚠️  ATENÇÃO: Configure o arquivo .env com suas credenciais do Telegram!${NC}"
+        echo "TELEGRAM_TOKEN e TELEGRAM_CHAT_ID precisam ser configurados."
+        read -p "Pressione ENTER após configurar o .env..." -r
+    else
+        echo -e "${RED}❌ Nem .env nem .env.example encontrados!${NC}"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}✅ Arquivo .env encontrado${NC}"
+fi
+
 # Para containers existentes
 echo -e "${YELLOW}🛑 Parando containers existentes...${NC}"
 docker-compose down || true
